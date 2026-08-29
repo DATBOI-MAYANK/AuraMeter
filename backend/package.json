@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@langchain/core": "^1.2.9",
+    "@langchain/google-genai": "^2.3.0",
+    "express": "^5.2.1",
+    "multer": "^2.3.0",
+    "nodemon": "^3.1.14"
+  },
+  "scripts": {
+    "server": "nodemon app.js "
+  },
+  "type": "module"
+}
