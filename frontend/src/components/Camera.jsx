@@ -7,6 +7,8 @@ function Camera() {
 
   const [capturedImage, setCapturedImage] = useState(null);
   let [imageUrl, setImageUrl] = useState(null);
+  const [auraResult, setAuraResult] = useState(null);
+  const [isScanning, setIsScanning] = useState(false);
 
   useEffect(() => {
     let stream;
@@ -52,16 +54,13 @@ function Camera() {
     canvas.toBlob(
       (blob) => {
         setCapturedImage(blob);
-       setImageUrl( URL.createObjectURL(blob));
- console.log(imageUrl);
+        setImageUrl(URL.createObjectURL(blob));
+        console.log(imageUrl);
       },
       "image/jpeg",
       0.8,
     );
 
-     
-
-   
     streamRef.current?.getTracks().forEach((track) => {
       track.stop();
     });
@@ -69,6 +68,36 @@ function Camera() {
     video.srcObject = null;
   };
 
+  const scanAura = async () => {
+    if (!capturedImage) return;
+
+    setIsScanning(true);
+
+    const formData = new FormData();
+    formData.append("image", capturedImage, "capture.jpeg");
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+         console.log("response--",data)
+        setAuraResult(data);
+      }
+    } catch (error) {
+      console.error("Upload failed:", error);
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const handleRetake = () => {
+    setCapturedImage(null);
+    setAuraResult(null);
+  };
   return (
     <div>
       {!capturedImage ? (
@@ -80,8 +109,23 @@ function Camera() {
       ) : (
         <>
           <img src={imageUrl} alt="Captured" />
+          {auraResult && (
+            <div className="result-card">
+              <h2>
+                Rank: {auraResult.rank} (Score: {auraResult.score})
+              </h2>
+              <p>"{auraResult.comment}"</p>
+            </div>
+          )}
 
-          <button onClick={() => setCapturedImage(null)}>Retake</button>
+          <div>
+            <button onClick={handleRetake}>Retake</button>
+            {!auraResult && (
+              <button onClick={scanAura} disabled={isScanning}>
+                {isScanning ? "Scanning Aura..." : "Analyze Power Level"}
+              </button>
+            )}
+          </div>
         </>
       )}
 
