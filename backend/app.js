@@ -7,7 +7,13 @@ import { z } from "zod";
 import cors from "cors"
 
 const app = express();
-app.use(cors());
+
+const corsOptions = {
+  origin: process.env.FRONTEND_URL,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 
 const upload = multer({ storage: multer.memoryStorage() });
 
